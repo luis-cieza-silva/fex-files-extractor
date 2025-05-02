@@ -1,11 +1,9 @@
-Perfecto, tu código quedó muy limpio.
-Aquí tienes una propuesta para el `README.md` que cumple todo lo que pediste: es **claro, conciso**, y **accesible incluso para quienes no saben programar**, y además incluye un párrafo sobre los **beneficios** de esta herramienta:
 
 ---
 
 # fex
 
-**fex** (file extractor) es una función en Python que permite encontrar y extraer directamente los enlaces a archivos de datos (.xlsx, .xls o .csv) desde cualquier página web, sin necesidad de descargar manualmente cada archivo.
+**fex** (files extractor) es una función en Python que permite encontrar y extraer directamente los enlaces a archivos de datos (.xlsx, .xls o .csv) desde cualquier página web, sin necesidad de descargar manualmente cada archivo.
 
 ## ¿Para qué sirve?
 
@@ -63,6 +61,7 @@ print(urls)
 | `file_type` | str o list     | Extensiones de archivo a buscar. Puede ser un texto como `'xlsx'` o una lista como `['xlsx', 'csv']`. También puedes usar `'all'` para buscar todos los formatos comunes. |
 | `filter`    | str (opcional) | Texto o expresión regular para filtrar los nombres de los archivos encontrados.                                                                                           |
 
+
 ## Ejemplo sencillo
 
 Imagina que en una página hay varios archivos, pero tú solo quieres el que dice "Reporte\_2024.xlsx". Puedes usar:
@@ -74,6 +73,3 @@ fex("https://ejemplo.com/descargas", "xlsx", filter="2024")
 Y obtendrás directamente el enlace al archivo que necesitas, sin buscarlo manualmente en la página.
 
 ---
-
-¿Te gustaría que también te prepare un ejemplo para que puedas agregarlo como un pequeño "demo" con capturas de pantalla o un esquema visual en el README? 🚀
-(Si quieres, también podría ayudarte a organizar una estructura de repositorio mínima para que luzca más pro en GitHub).
