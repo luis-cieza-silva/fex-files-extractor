@@ -1,50 +1,57 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-import re
 
-def fex(url, file_type, filter=None):
+def fex(url, file_type, filter_and=None, filter_or=None):
     """
     Extrae una lista de enlaces de archivos con extensiones especificadas de un sitio web,
-    con la opción de filtrar los enlaces usando una expresión regular.
+    con la opción de filtrar los enlaces usando condiciones AND/OR sobre listas de palabras clave.
 
     Parámetros:
     - url (str): URL del sitio web a analizar.
     - file_type (list o str): Extensiones de archivos a buscar.
       Puede ser una lista ['xlsx', 'xls'] o un string 'xlsx'.
       Si se usa "all", buscará archivos de tipo xlsx, xls y csv.
-    - filter (str o None): Expresión regular para filtrar la lista de URLs finales.
+    - filter_and (list o None): Lista de palabras clave. El enlace debe contener *todas* estas palabras.
+    - filter_or (list o None): Lista de palabras clave. El enlace debe contener *al menos una* de estas palabras.
 
     Retorna:
-    - list: Lista de enlaces absolutos a archivos con las extensiones seleccionadas y que cumplen el filtro.
+    - list: Lista de enlaces absolutos a archivos con las extensiones seleccionadas y que cumplen los filtros.
     """
     response = requests.get(url)
-    response.raise_for_status()  # Verificar si la solicitud fue exitosa
+    response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Normalizar file_type para aceptar un string o una lista
     if isinstance(file_type, str):
         if file_type == "all":
-            file_type = ['xlsx', 'xls', 'csv']  # Tipos de archivo considerados como datos
+            file_type = ['xlsx', 'xls', 'csv']
         else:
-            file_type = [file_type]  # Convertirlo a lista si es un string único
+            file_type = [file_type]
 
-    # Buscar todos los enlaces en la página
     links = soup.find_all('a', href=True)
+    archivos = [
+        urljoin(url, link['href']) 
+        for link in links 
+        if any(link['href'].lower().endswith(f".{ext}") for ext in file_type)
+    ]
 
-    # Convertir enlaces relativos en absolutos y filtrar los archivos con las extensiones deseadas
-    archivos = [urljoin(url, link['href']) for link in links if any(link['href'].lower().endswith(f".{ext}") for ext in file_type)]
+    def cumple_and(archivo, keywords):
+        return all(palabra.lower() in archivo.lower() for palabra in keywords)
 
-    # Aplicar filtro si se proporciona
-    if filter is not None:
-        pattern = re.compile(filter, flags=re.IGNORECASE)
-        archivos = [archivo for archivo in archivos if pattern.search(archivo)]
+    def cumple_or(archivo, keywords):
+        return any(palabra.lower() in archivo.lower() for palabra in keywords)
 
-    # Mostrar un mensaje si no se encuentra ningún archivo del tipo solicitado
+    if filter_and:
+        archivos = [a for a in archivos if cumple_and(a, filter_and)]
+    if filter_or:
+        archivos = [a for a in archivos if cumple_or(a, filter_or)]
+
     if not archivos:
-        tipo_mensaje = "los formatos: " + ", ".join(file_type)
-        if filter:
-            tipo_mensaje += f" y el filtro '{filter}'"
-        print(f"No se encontraron archivos con {tipo_mensaje}")
+        mensaje = f"los formatos: {', '.join(file_type)}"
+        if filter_and:
+            mensaje += f" con todas las palabras {filter_and}"
+        if filter_or:
+            mensaje += f" con al menos una de las palabras {filter_or}"
+        print(f"No se encontraron archivos con {mensaje}")
 
     return archivos
